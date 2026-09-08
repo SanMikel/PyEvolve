@@ -1,2 +1,2 @@
 # PyEvolve
-Porting UPDFevolv to from F77 to python
+Porting UPDFevolv from F77 to python
