@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyevolv"
+version = "0.1.0"
+description = "Monte Carlo DGLAP evolution of parton densities (Python/Numba port of updfevolv)"
+authors = [{ name = "Mikel Mendizabal" }]
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=2.0",
+    "numba>=0.60",
+    "scipy>=1.12",
+    "h5py>=3.10",
+    "matplotlib>=3.8",
+]
+
+[tool.setuptools]
+packages = ["numba_src", "numba_src.interpolation"]
