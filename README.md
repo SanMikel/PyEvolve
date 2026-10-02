@@ -17,6 +17,11 @@ pip install -e .
 ```
 
 ## Quick start
+For a quick test run
+```bash
+python pdf_evolution_example.py
+```
+
 ```python
 import numpy as np
 from numba_src.PDFEvolution import PDFEvolution
