@@ -6,42 +6,10 @@ from numba_src.z_sampling import sample_z
 from numba_src.banner import print_banner
 from numba_src.interpolation.linear import linear_interp
 from numba import njit, prange, set_num_threads
-from numba_src.resampling import advance_particle, systematic_resample, advance_population
 import numpy as np
 import matplotlib.pyplot as plt
 import time
 
-@njit(cache=True)
-def fill_row_from_population(g, parton, z_cum, w_cum, parton_in, k_z_grid, bin_widths, n_samples,
-                             z_ii_w, z_ii_w2, z_qi_w, z_qi_w2,
-                             z_ci_w, z_ci_w2, z_bi_w, z_bi_w2,
-                             z_gi_w, z_gi_w2, delta_w, delta_w2):
-    n_z = len(k_z_grid) - 1
-    for i in range(len(parton)):
-        if z_cum[i] == 1.0:
-            delta_w[g]  += w_cum[i] / n_samples
-            delta_w2[g] += w_cum[i]**2 / n_samples**2
-            continue
-
-        bin_id = np.searchsorted(k_z_grid, z_cum[i]) - 1
-        if bin_id < 0 or bin_id >= n_z:
-            continue
-
-        bw = bin_widths[bin_id]
-        weight  = w_cum[i] / bw / n_samples
-        weight2 = w_cum[i]**2 / bw**2 / n_samples**2
-        p = parton[i]
-
-        if p == parton_in:
-            z_ii_w[g, bin_id] += weight;  z_ii_w2[g, bin_id] += weight2
-        elif p == -1 or abs(p) == 2 or abs(p) == 3:
-            z_qi_w[g, bin_id] += weight/5.0;  z_qi_w2[g, bin_id] += weight2/25.0
-        elif abs(p) == 4:
-            z_ci_w[g, bin_id] += weight/2.0;  z_ci_w2[g, bin_id] += weight2/4.0
-        elif abs(p) == 5:
-            z_bi_w[g, bin_id] += weight/2.0;  z_bi_w2[g, bin_id] += weight2/4.0
-        elif p == 0:
-            z_gi_w[g, bin_id] += weight;  z_gi_w2[g, bin_id] += weight2
 
 @njit(cache=True)
 def generate_samples( parton_in, mu_0, mu_f,
@@ -75,7 +43,6 @@ def generate_samples( parton_in, mu_0, mu_f,
 
     return mu_all, z_all, parton_all, w_all, n_all
 
-# Work in progress do not use
 @njit(parallel=True, cache=True)
 def generate_samples_batch( parton_in, mu_0, mu_f,
                       log_mu2_grid, log_mu2_grid_uniform, log_mu2_grid_dx,
@@ -306,7 +273,7 @@ class EvolutionKernel:
         self.mu_f = mu_grid_param[1]
         self.epsilon = epsilon
         self.max_n_splittings = max_n_splittings
-        self.print_banner()
+        print_banner()
         print(quark_thresholds)
         self.alpha_qcd = AlphaQCD(mu_ref=mu_ref, alphas_ref=alphas_ref, thresholds=quark_thresholds, order=self.order)
         self.alpha_qcd.tabulate(mu_grid_param)
@@ -454,89 +421,6 @@ class EvolutionKernel:
 
         return (mu, z, parton, w, n)
     
-    def generate_kernel_with_resampling(self, parton_in, n_samples=1_000_000, ess_frac=0.5):
-        n_mu = len(self.k_log_mu2_grid)
-        n_z = len(self.k_z_grid) - 1
-        bin_widths = np.diff(self.k_z_grid)
-    
-        z_ii_w = np.zeros((n_mu, n_z)); z_ii_w2 = np.zeros((n_mu, n_z))
-        z_qi_w = np.zeros((n_mu, n_z)); z_qi_w2 = np.zeros((n_mu, n_z))
-        z_ci_w = np.zeros((n_mu, n_z)); z_ci_w2 = np.zeros((n_mu, n_z))
-        z_bi_w = np.zeros((n_mu, n_z)); z_bi_w2 = np.zeros((n_mu, n_z))
-        z_gi_w = np.zeros((n_mu, n_z)); z_gi_w2 = np.zeros((n_mu, n_z))
-        delta_w = np.zeros(n_mu); delta_w2 = np.zeros(n_mu)
-    
-        parton = np.full(n_samples, parton_in, dtype=np.int64)
-        log_mu2_cur = np.full(n_samples, np.log(self.mu_0**2))
-        log_delta_i_aux0 = self.log_sudakov_g if parton_in == 0 else self.log_sudakov_q
-        log_sudakov_cur = np.full(n_samples,
-            linear_interp(np.log(self.mu_0**2), self.sudakov.log_mu2_grid, log_delta_i_aux0,
-                          self.sudakov.uniform, self.sudakov.dx))
-        z_cum = np.ones(n_samples)
-        w_cum = np.ones(n_samples)
-    
-        for g in range(n_mu):
-            log_mu2_target = self.k_log_mu2_grid[g]
-            advance_population(parton, log_mu2_cur, log_sudakov_cur, z_cum, w_cum,
-                               log_mu2_target, self.sudakov.log_mu2_grid, self.sudakov.uniform, self.sudakov.dx,
-                               self.log_sudakov_q, self.log_sudakov_g, self.alphas_interp_info[1],
-                               self.dmu2_sudakov_qq, self.dmu2_sudakov_qg,
-                               self.dmu2_sudakov_gq, self.dmu2_sudakov_gg,
-                               self.log_thresholds2, self.epsilon)
-    
-            fill_row_from_population(g, parton, z_cum, w_cum, parton_in, self.k_z_grid, bin_widths, n_samples,
-                                     z_ii_w, z_ii_w2, z_qi_w, z_qi_w2,
-                                     z_ci_w, z_ci_w2, z_bi_w, z_bi_w2,
-                                     z_gi_w, z_gi_w2, delta_w, delta_w2)
-    
-            sum_w = w_cum.sum(); sum_w2 = (w_cum**2).sum()
-            n_eff = sum_w**2 / sum_w2 if sum_w2 > 0 else float(n_samples)
-            if n_eff < ess_frac * n_samples:
-                idx = systematic_resample(w_cum)
-                parton = parton[idx].copy()
-                log_mu2_cur = log_mu2_cur[idx].copy()
-                log_sudakov_cur = log_sudakov_cur[idx].copy()
-                z_cum = z_cum[idx].copy()
-                mean_w = w_cum.mean()
-                w_cum = np.full(n_samples, mean_w)
-    
-        return (z_ii_w, z_ii_w2, z_qi_w, z_qi_w2, z_ci_w, z_ci_w2,
-            z_bi_w, z_bi_w2, z_gi_w, z_gi_w2, delta_w, delta_w2)
-    
-    def print_banner(self):
-        banner = r"""
-        ____        _____            _
-       |  _ \ _   _| ____|_   _____ | |_   __
-       | |_) | | | |  _| \ \ / / _ \| \ \ / /
-       |  __/| |_| | |___ \ V / (_) | |\ V /
-       |_|    \__, |_____| \_/ \___/|_| \_/
-              |___/
-    
-            Parton Evolution via Monte Carlo Sudakov Sampling
-        """
-        equation = r"""
-          f_i(x, mu) = Delta_i(mu0,mu) f_i(x, mu0)
-                     + sum_j  Integral[x,1] dz/z  K_ij(z, mu) f_j(x/z, mu0)
-        """
-    
-        print(banner)
-        print("  " + "-" * 58)
-        print(f"  PyEvolv v{getattr(self, '__version__', '0.1.0')}")
-        print("  " + "-" * 58)
-        if self is not None:
-            print(f"  mu_0            : {self.mu_0:.4g} GeV")
-            print(f"  mu_f            : {self.mu_f:.4g} GeV")
-            print(f"  epsilon (z cut) : {self.epsilon:.2e}")
-            if hasattr(self, "log_mu2_grid"):
-                n_bins = len(self.log_mu2_grid) - 1
-                print(f"  log(mu^2) grid  : {n_bins} bins "
-                      f"[{self.log_mu2_grid[0]:.3f}, {self.log_mu2_grid[-1]:.3f}]")
-        print("  " + "-" * 58)
-        print("  DGLAP-equivalent evolution equation:")
-        print(equation)
-        print("  " + "-" * 58)
-        print("  Ready to evolve. Try: model.generate_split_kernels('g', ...)")
-        print("  " + "-" * 58)
 
         
 
