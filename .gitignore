@@ -1,0 +1,8 @@
+__pycache__/
+claude_src
+*.png
+*.pdf
+grids
+tests
+.pyevolve/
+*.h5

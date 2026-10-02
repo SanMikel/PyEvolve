@@ -339,7 +339,7 @@ class EvolutionKernel:
         k_z_grid_highx = np.linspace(np.log(0.9), np.log(k_z_grid_param[1]), n_z_bins)
         k_z_grid = np.unique(np.concatenate([k_z_grid_lowx, k_z_grid_lowmidx, k_z_grid_highmidx, k_z_grid_lowhighx, k_z_grid_highx]))
         self.k_z_grid = np.exp(k_z_grid)
-        self.k_z_grid = np.logspace(np.log10(k_z_grid_param[0]), np.log10(k_z_grid_param[1]), k_z_grid_param[2])
+        #self.k_z_grid = np.logspace(np.log10(k_z_grid_param[0]), np.log10(k_z_grid_param[1]), k_z_grid_param[2])
   
         
         print("Warming up functions")
@@ -424,7 +424,7 @@ class EvolutionKernel:
                    z_gi_w, z_gi_w2, delta_w, delta_w2,
                    underflow_w, underflow_w2) 
 
-        kernels_norm = renormalise_kernel_rows(kernels, self.k_z_grid)
+        kernels_norm = kernels #renormalise_kernel_rows(kernels, self.k_z_grid)
     
         
         end = time.time()

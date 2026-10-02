@@ -77,7 +77,7 @@ class PDFEvolution:
     def __init__(self, alphas_ref=0.130, mu_ref=91.1876, mu_grid_param=(1.3, 14000, 10000),
                  k_log_mu2_grid_param=(1.3, 14000, 51), k_z_grid_param=(9.9e-7, 1.0, 51),
                  quark_thresholds = [0.0, 0.0, 0.0, 1.47, 4.5, 173.0], order=0, 
-                 epsilon=1e-6, n_cores=20, read_kernels=False, n_samples=10_000_000, max_n_splittings=100):
+                 epsilon=1e-6, n_cores=10, read_kernels=False, n_samples=10_000_000, max_n_splittings=100):
     
         self.epsilon = epsilon    
         self.quark_thresholds = quark_thresholds
@@ -96,10 +96,11 @@ class PDFEvolution:
             
             self.sudakov = self.evolution_kernel.sudakov
             
-            kernel_ig = self.evolution_kernel.generate_kernel_with_resampling(0,   n_samples)
-            kernel_iq = self.evolution_kernel.generate_kernel_with_resampling(1, 3*n_samples) 
-            #kernel_ig = self.evolution_kernel.generate_evolution_kernel_batch(0, n_samples)
-            #kernel_iq = self.evolution_kernel.generate_evolution_kernel_batch(1, 2*n_samples) 
+            #kernel_ig = self.evolution_kernel.generate_kernel_with_resampling(0,   n_samples)
+            #kernel_iq = self.evolution_kernel.generate_kernel_with_resampling(1, 3*n_samples) 
+            print("Generating Kig and Kiq kernels")
+            kernel_ig = self.evolution_kernel.generate_evolution_kernel_batch(0, n_samples)
+            kernel_iq = self.evolution_kernel.generate_evolution_kernel_batch(1, 2*n_samples) 
 
             self.kernel_gg = (kernel_ig[0], kernel_ig[1])
             self.kernel_gq = (kernel_iq[8], kernel_iq[9]) 

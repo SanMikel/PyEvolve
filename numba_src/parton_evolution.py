@@ -30,32 +30,36 @@ def evolve_parton(parton_in, log_mu2_start, log_mu2_finish,
     z_history  = np.zeros(max_n_splitting)
     w_history  = np.zeros(max_n_splitting)
     parton_history = np.empty(max_n_splitting)
-
+    
     # Start loop 
     n_splittings = 0
+    
     for i in range(max_n_splitting):
 
         # Generate new scale for splitting
         log_mu2_candidate, log_sudakov_candidate = generate_scale(log_sudakov_step, log_mu2_grid, log_delta_i_aux, False, log_mu2_grid_dx)
-
+    
         # Conditions for candiate scale
         if log_mu2_candidate >= log_mu2_finish:
             break
         elif log_mu2_candidate <= log_mu2_step:
             break
-
+    
         # Get alphas and number of flavours for the candidate scale
         alphas = linear_interp(log_mu2_candidate, log_mu2_grid, alphas_grid, log_mu2_grid_uniform, log_mu2_grid_dx)
         nf = get_nf(log_mu2_candidate, log_thresholds2)
-
+    
         # Choose splitting function according to rates
-        splitting_channel, w_splitting = select_splitting( parton_in, log_mu2_candidate,
-                                                           log_mu2_grid, log_mu2_grid_uniform, log_mu2_grid_dx,
-                                                           dmu2_sudakov_qq_grid, dmu2_sudakov_qg_grid, 
-                                                           dmu2_sudakov_gq_grid, dmu2_sudakov_gg_grid)
+        splitting_channel, w_rate = select_splitting( parton_in, log_mu2_candidate,
+                                                      log_mu2_grid, log_mu2_grid_uniform, log_mu2_grid_dx,
+                                                      dmu2_sudakov_qq_grid, dmu2_sudakov_qg_grid, 
+                                                      dmu2_sudakov_gq_grid, dmu2_sudakov_gg_grid)
         
         # Generate z according 
-        z_candidate, w_sampling = sample_z(splitting_channel, epsilon, 1.0 - epsilon, alphas)
+        z_candidate, w_sampling = sample_z(splitting_channel, epsilon, 1.0 - epsilon)
+        w_splitting = z_candidate*evaluate(splitting_channel, z_candidate, alphas, nf, order)
+    
+
 
         # Choose new outgoing parton according to the splitting function
         if splitting_channel == 12 or splitting_channel == 11:
@@ -68,7 +72,7 @@ def evolve_parton(parton_in, log_mu2_start, log_mu2_finish,
             w_sampling *= 2 * nf
         
         # Weight of the generated event
-        w_event = w_sampling * w_splitting
+        w_event = w_rate * w_sampling * w_splitting
 
         # Save information on the history arrays
         log_mu2_history[i] = log_mu2_candidate
@@ -79,7 +83,12 @@ def evolve_parton(parton_in, log_mu2_start, log_mu2_finish,
         # Update step values for next iteration
         log_mu2_step     = log_mu2_candidate
         log_sudakov_step = log_sudakov_candidate
-        parton_in        = parton_out
+        if splitting_channel == 12 or splitting_channel == 21:
+            log_delta_i_aux = log_delta_g_grid if parton_out==0 else log_delta_q_grid
+            log_sudakov_step = linear_interp(log_mu2_step, log_mu2_grid, log_delta_i_aux, 
+                                             log_mu2_grid_uniform, log_mu2_grid_dx)
+
+        parton_in = parton_out
         log_delta_i_aux = log_delta_g_grid if parton_in==0 else log_delta_q_grid
         n_splittings += 1
        

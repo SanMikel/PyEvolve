@@ -40,16 +40,15 @@ def sample_z_pgg(z_min, z_max):
     return z, weight
 
 @njit(cache=True)
-def sample_z(splitting, z_min, z_max, alphas, order=0):
+def sample_z(splitting, z_min, z_max, order=0):
     z = 1.0
     w_sampling = 1.0
     if splitting==11:
-        z, w_sampling = sample_z_pgg(z_min, z_max)
+        z, w_sampling = sample_z_softdiv(z_min, z_max)
+    elif splitting==22:
+        z, w_sampling = sample_z_softdiv(z_min, z_max)
     else:
         z, w_sampling = sample_z_uniform(z_min, z_max)
 
-    w_split = z*SplittingFunctions.evaluate(splitting, z, alphas, order=order)
-    w_sampling *= w_split
-    
     return z,  w_sampling
 

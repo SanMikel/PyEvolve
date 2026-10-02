@@ -52,7 +52,7 @@ def Pgg(z, alphas, nf, order=0):
         return lo + nlo
 
 @njit(cache=True)
-def evaluate(splitting, z, alphas, order=0):
+def evaluate(splitting, z, alphas, nf, order=0):
     if splitting==11:
         return Pgg(z, alphas, nf, order)
     elif splitting==12:

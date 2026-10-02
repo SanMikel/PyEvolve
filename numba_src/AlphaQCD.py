@@ -43,7 +43,7 @@ class AlphaQCD():
        return nf
 
     def evolve_rge(self, mu_ref, alphas_ref, mu, z=0.0):
-        nf = self.get_number_of_active_flavours(mu)
+        nf = self.get_number_of_active_flavours(np.sqrt(mu*mu_ref))
         
         mu_eff = mu*(1-z) if mu*(1-z) > 1.0 else 1.0
         t_ref = 2*np.log(mu_ref)
