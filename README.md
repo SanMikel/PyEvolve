@@ -2,22 +2,14 @@
 Porting UPDFevolv from F77 to python
 
 ### Evolution kernel
-Parallelisation via numba, however, large fluctuations, investigating resampling or kernel smoothening 
+Parallelisation via numba, to test resampling
 
 ### Space-like evolution
 #### LO: 
-Implemented. Slight differences from LHAPDF evolution.
+Implemented. Agreement with APFEL++
 
 #### NLO:
 Splitting functions and alpha_s available. 
-
-Evolution Kernel not yet available. The sampling structure has to be changed by removing the full splitting function weight from 
-https://github.com/SanMikel/PyEvolve/blob/128d4fe575d225f16e78742f33f8e692c916e96c/numba_src/z_sampling.py#L51
-and add it to 
-https://github.com/SanMikel/PyEvolve/blob/4dd0d0f1e061a649516ebdb470035620da6e682c/numba_src/parton_evolution.py#L57-L59
-### Time-like evolution
-Not yet implemented
-
 
 ### Interpolation
 At the moment only linear interpolation is available 
