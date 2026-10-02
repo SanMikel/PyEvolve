@@ -5,7 +5,7 @@ Porting UPDFevolv from F77 to Python3 and numba. At the moment only LO space-lik
 Requires  python ≥ 3.10
 
 ```bash
-git clone
+git clone https://github.com/SanMikel/PyEvolve.git
 cd PyEvolve
 
 # Create and activate virtual environment
