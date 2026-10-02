@@ -28,7 +28,7 @@ evo = PDFEvolution(n_samples=1_000_000, n_cores=5) #Builds evolution kernels
 
 xgrid = np.logspace(-5, 0, 100)
 # We set the gluon starting distribution gluon id=0
-evo.set_starting_distribution(xgrid, dummy_pdf(xgrid), 0)
+evo.set_starting_distribution(xgrid, dummy_pdf(xgrid, 0.5, -0.1, 2), 0)
 
 # Evolve PDF to mu_f of choice
 xgrid, pdf, pdf_w2 = evo.evolve(10.0)
