@@ -33,7 +33,9 @@ evo.set_starting_distribution(xgrid, dummy_pdf(xgrid), 0)
 # Evolve PDF to mu_f of choice
 xgrid, pdf, pdf_w2 = evo.evolve(10.0)
 
-g_pdf = pdf[0]; g_pdf_w2 = pdf_w2[0]
+g_pdf    = pdf[0]; g_pdf_w2 = pdf_w2[0]
+u_pdf    = pdf[1]; u_pdf_w2 = pdf_w2[1]
+ubar_pdf = pdf[-1]; ubar_pdf_w2 = pdf_w2[-1]
 ```
 
 Flavour indices do not match PDG id at the moment g: 0, u: 1, d: 2, s: 3, c: 4, b: 5, antiparticles with a - sing in front

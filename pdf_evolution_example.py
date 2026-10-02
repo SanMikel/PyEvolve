@@ -1,7 +1,6 @@
 from numba_src.PDFevolution import PDFEvolution
 import matplotlib.pyplot as plt
 import numpy as np
-import apfelpy as ap 
 import time
 xmin = 1e-5
 xmax = 1.0
@@ -55,51 +54,3 @@ ax.legend(frameon=False)
 
 plt.show()
 
-
-
-
-'''
-evolution.set_starting_distribution(xgrid, dummy_pdf(xgrid, 0.1, 0), 0)
-evolution.set_starting_distribution(xgrid, pdf_mu0[2], 1)
-evolution.set_starting_distribution(xgrid, pdf_mu0[-2], -1)
-evolution.set_starting_distribution(xgrid, pdf_mu0[1], 2)
-evolution.set_starting_distribution(xgrid, pdf_mu0[-1], -2)
-evolution.set_starting_distribution(xgrid, pdf_mu0[-3], -3)
-evolution.set_starting_distribution(xgrid, pdf_mu0[3], 3)
-
-mu_f = 1.31
-
-start = time.time()
-pdff = evolution.evolve(mu_f)
-end = time.time()
-print(f'{end-start:.4f} secs')
-pdf_f = get_lhapdf_pdfQ(pdf, mu_f, xgrid)
-#pdf_f = get_pdf("HERAPDF20_LO_EIG", mu_f)
-
-fig, ax = plt.subplots(1,2, figsize=(5*2, 5), tight_layout=True)
-
-ax[0].set_xscale('log')
-ax[0].set_yscale('log')
-ax[0].errorbar(xgrid, pdff[1][0], yerr=np.sqrt(pdff[2][0]))
-ax[0].plot(xgrid, pdf_f[21])
-ax[0].set_ylabel('xg(x, Q)')
-ax[0].set_title(f'{mu_f}')
-ax[0].set_xlabel('x')
-
-
-ax[1].set_xscale('log')
-ax[1].set_yscale('log')
-ax[1].errorbar(xgrid, pdff[1][1], yerr=np.sqrt(pdff[2][1]))
-ax[1].plot(xgrid, pdf_f[2])
-ax[1].set_ylabel('xu(x, Q)')
-ax[1].set_title(f'{mu_f}')
-ax[1].set_xlabel('x')
-
-ax[0].set_xlim(xmin, xmax)
-ax[1].set_xlim(xmin, xmax)
-
-#print(np.divide(pdff[1][0], pdf_f[0]))
-#print(np.divide(np.sqrt(pdff[2][0]), pdf_f[0]))
-
-plt.savefig(f'test_{mu_f}.pdf')
-'''
